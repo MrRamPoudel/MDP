@@ -70,14 +70,76 @@ class MDP:
         u += .1 * self.__getUtility((action -1)% 4, row, col)
         u += .1 * self.__getUtility((action + 1) % 4, row, col)
         return u
+    #runs the value iteration
+    #We calculate the utility for each action and save the max
+    def __valueIterationHelper(self,iter=20):
+        maxArray =  []
+        for k in range(iter):
+            for index, value in np.ndenumerate(self.NextUtility):
+                x, y = index[0], index[1]
+                if (x,y) in self.terminalStates or (x,y) == self.wall:
+                    continue
+                #4 actions
+                for l in range(4):
+                    maxArray.append(self.__calculateUtility(l,x,y))
+                self.NextUtility[x][y] = max(maxArray)
+                maxArray.clear()
+            self.utilityGrid = copy.deepcopy(self.NextUtility)
+        self.utilityGrid = np.array(self.utilityGrid)
+    #finds the highest number for each action
+    def __getOptimalPolicy(self, action, row, col):
+        x, y = row, col
+        aRow, aCol = self.actions[action]
+        x += aRow
+        y += aCol
+            #out of boundary or in the blocked cell
+        if x <0 or x >=self.rows or y <0 or y>= self.cols or (x,y) == self.wall:
+            return -float("inf")
+        if (x,y) in self.terminalStates:
+            return self.terminalStates[x,y]
+        
+        return self.utilityGrid[x][y]
+    #map the max value based on how it is passed
+    def __mapPolicy(self, max):
+        map = 1
+        if max == 1:
+            map = -2
+        elif max == 2:
+            map = -1
+        elif max == 3:
+            map = 2
+        return map
+
+    def __getPolicy(self):
+        self.utilityGrid[2][3] = 1.0
+        self.utilityGrid[1][3] = -1.0
+        a =[]
+        newBoard =  [[0 for i in range(self.cols)] for j in range(self.rows)]
+        for i in range(self.rows):
+            for j in range(self.cols):
+                for k in range(4):
+                    a.append(self.__getOptimalPolicy(k, i, j))
+                a = np.array(a) 
+                maxPos = np.argmax(a)
+                newBoard[i][j] = self.__mapPolicy(maxPos)
+                a = []
+        #reset if this program is used for policy evaluation next time
+        self.utilityGrid[2][3] = 0.0
+        self.utilityGrid[1][3] = 0.0
+        newBoard.reverse()
+        print(newBoard)
+    def valueIteration(self, iter=20):
+        self.terminalStates  = {(2,3):1.0,(1,3):-1.0}
+        self.__valueIterationHelper(iter)
+        self.__getPolicy()
+
 
 
 #main program
 #call policy evaluation
-reward = float(sys.argv[1])
-filename = sys.argv[2]
-program = MDP(reward=reward, policyFile=filename)
+#reward = float(sys.argv[1])
+#filename = sys.argv[2]
+#program = MDP(reward=reward, policyFile=filename)
 
-ans = program.policyEvaluation()
-
-print(ans)
+program = MDP()
+program.valueIteration()
