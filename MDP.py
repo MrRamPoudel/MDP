@@ -1,4 +1,10 @@
-from typing import Mapping
+'''
+Ram Poudel
+The University of Akron
+The puporse of this program is to solve the MDP problem form AIMA book
+Policy Evaluation takes the policy and evaluates the utitlity for each states
+Value iteration takes the transition probability and reward and finds the optimal policy for each states
+'''
 import numpy as np
 import sys
 import copy 
@@ -141,5 +147,7 @@ class MDP:
 #filename = sys.argv[2]
 #program = MDP(reward=reward, policyFile=filename)
 
+
+#part2
 program = MDP()
 program.valueIteration()
